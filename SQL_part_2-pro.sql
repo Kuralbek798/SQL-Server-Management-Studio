@@ -289,8 +289,35 @@
 
 --### 3. **DENSE_RANK()**
 --   - **Задание 1**: Выведите список продуктов по цене, присваивая им плотный ранг в зависимости от их стоимости.
+--SELECT
+--pr.product_id
+--,pr.product_name
+--,pr.description
+--,pr.price
+--,DENSE_RANK() OVER (ORDER BY pr.price DESC) AS [DENSE_RANK]
+--FROM study.products pr
+
 --   - **Задание 2**: Создайте запрос, который показывает, сколько заказов было сделано каждым покупателем со сгруппированными по рейтингу результатами (без пропусков).
---   - **Задание 3**: Выведите покупателей и вставьте плотный ранг для каждого покупателя на основе их возраста.
+--SELECT
+--*
+--,DENSE_RANK() OVER (ORDER BY soq.order_quantity DESC) AS [DENSE_RANK]
+--FROM
+--(SELECT
+--b.buyer_name
+--,COUNT(o.order_number) AS order_quantity
+--FROM study.orders o 
+--JOIN study.buyers b ON b.buyer_id = o.buyer_id
+--GROUP BY b.buyer_name) AS soq
+
+--   - **Задание 3**: Выведите покупателей и вставьте плотный ранг для каждого покупателя сделавшего заказ, на основе их возраста.
+--SELECT 
+--b.buyer_name
+--,b.birthday
+--,DENSE_RANK() OVER (ORDER BY b.birthday ASC)  AS [dense_rank]
+--FROM study.orders o
+-- JOIN study.buyers b ON b.buyer_id = o.buyer_id
+--GROUP BY b.buyer_name, b.birthday
+ 
 --### 4. **NTILE(n)**
 --   - **Задание 1**: Разделите покупателей на 4 группы по количеству заказов и покажите, какие группы включают в себя каких покупателей.
 --   - **Задание 2**: Разбейте все изделия на 3 группы по цене и выведите эти группы.
