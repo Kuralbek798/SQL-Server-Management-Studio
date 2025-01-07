@@ -261,6 +261,30 @@
 
 
 --   - **Задание 3**: Определите, какие покупатели получили самый высокий ранг по количеству заказов и выведите список этих покупателей.
+--WITH buyers_orders_count AS (
+--    SELECT
+--        b.buyer_id,
+--        b.buyer_name,
+--        COUNT(o.order_number) AS orders_count
+--    FROM study.buyers b 
+--    JOIN study.orders o ON o.buyer_id = b.buyer_id
+--    GROUP BY b.buyer_id, b.buyer_name
+--),
+--ranked_buyers AS (
+--    SELECT
+--        boc.buyer_id,
+--        boc.buyer_name,
+--        boc.orders_count,
+--        RANK() OVER (ORDER BY boc.orders_count DESC) AS [rank]
+--    FROM buyers_orders_count boc
+--)
+--SELECT
+--    rb.buyer_id,
+--    rb.buyer_name,
+--    rb.orders_count,
+--    rb.[rank]
+--FROM ranked_buyers rb
+--WHERE rb.[rank] = 1;  
 
 
 --### 3. **DENSE_RANK()**
