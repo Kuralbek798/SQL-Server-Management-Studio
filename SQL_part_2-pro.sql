@@ -234,8 +234,35 @@
 
 --### 2. **RANK()**
 --   - **Задание 1**: Напишите запрос, который выводит суммы заказов по покупателям и присваивает ранг на основе общей суммы заказов.
+--WITH buyers_orders_sum AS
+--(SELECT
+--b.buyer_id
+--,b.buyer_name
+--,SUM(o.order_summa) AS order_sum
+--FROM study.buyers b
+--JOIN study.orders o ON o.buyer_id = b.buyer_id
+--GROUP BY b.buyer_id, b.buyer_name
+--) 
+--SELECT
+--bo.*
+--, RANK() OVER (ORDER BY bo.order_sum DESC) AS Rank
+--FROM buyers_orders_sum bo
+
 --   - **Задание 2**: Создайте отчет о товарах, проданных по каждому заказу, и назначьте ранг товарам в зависимости от их цены (в рамках каждого заказа).
+--SELECT
+--RANK() OVER (PARTITION BY o.order_id ORDER BY pr.price DESC) AS Rank
+--,o.order_id
+--,o.order_number
+--,pr.product_name
+--,pr.price
+--FROM study.orders o
+--JOIN study.orders_productsNN nn ON nn.order_id = o.order_id
+--JOIN study.products pr ON pr.product_id = nn.product_id
+
+
 --   - **Задание 3**: Определите, какие покупатели получили самый высокий ранг по количеству заказов и выведите список этих покупателей.
+
+
 --### 3. **DENSE_RANK()**
 --   - **Задание 1**: Выведите список продуктов по цене, присваивая им плотный ранг в зависимости от их стоимости.
 --   - **Задание 2**: Создайте запрос, который показывает, сколько заказов было сделано каждым покупателем со сгруппированными по рейтингу результатами (без пропусков).
