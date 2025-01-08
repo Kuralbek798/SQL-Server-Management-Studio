@@ -182,7 +182,7 @@
 --,p.type_id
 --,SUM(o.order_summa)	OVER (PARTITION BY p.type_id) AS orders_summa_type_id
 --,p.product_id
---,SUM(o.order_summa) OVER (PARTITION BY p.product_id) AS orders_summa_product_id100
+--,SUM(o.order_summa) OVER (PARTITION BY p.product_id) AS orders_summa_product_id
 --, CASE WHEN o.order_summa <> 0 THEN o.order_summa / p.price ELSE 0 END AS quantity
 --,o.order_number
 --,o.order_summa
@@ -191,6 +191,8 @@
 --RIGHT JOIN study.products p ON  nn.product_id = p.product_id 
 
 --*****ОКОННЫЕ ФУНКЦИИ*****
+
+
 --1. ROW_NUMBER()
 --Задание 1: Напишите запрос, который выводит список покупателей с их заказами, пронумерованными по дате заказа в порядке убывания для каждого покупателя.
 --SELECT
@@ -320,12 +322,75 @@
  
 --### 4. **NTILE(n)**
 --   - **Задание 1**: Разделите покупателей на 4 группы по количеству заказов и покажите, какие группы включают в себя каких покупателей.
+--SELECT
+--    b.buyer_name,
+--    COUNT(o.order_number) AS order_quantity,
+--    NTILE(4) OVER (ORDER BY COUNT(o.order_number) DESC) AS ntile_group
+--FROM study.buyers b
+--LEFT JOIN study.orders o ON o.buyer_id = b.buyer_id
+--GROUP BY b.buyer_name
+
 --   - **Задание 2**: Разбейте все изделия на 3 группы по цене и выведите эти группы.
+--SELECT
+--*
+--,NTILE(3) OVER (ORDER BY pr.price DESC) AS [ntile]
+--FROM study.products pr
+
 --   - **Задание 3**: Проведите анализ общего объема продаж и отделите их на 5 уровней по величине заказа.
+--SELECT 
+--o.order_id
+--,o.order_number
+--,o.order_summa
+--,NTILE(5) OVER (ORDER BY o.order_summa DESC) AS [nitle]
+--,pr.[price]
+--,pr.product_name
+--,pr.[description]
+--FROM study.orders o
+--JOIN study.orders_productsNN nn ON o.order_id = nn.order_id
+--RIGHT JOIN study.products pr ON pr.product_id = nn.product_id
+
 --### 5. **SUM()**
 --   - **Задание 1**: Напишите запрос для вычисления общей суммы заказов для каждого покупателя.
+--SELECT 
+--b.buyer_name
+--,SUM(o.order_summa) OVER (PARTITION BY b.buyer_id) AS [sum_All_orders]
+--FROM study.buyers b
+--JOIN study.orders o ON o.buyer_id = b.buyer_id
+--ORDER BY b.buyer_name DESC
+
 --   - **Задание 2**: Выведите общую сумму всех заказов для каждого типа продукта.
+--WITH RankedOrders AS (
+--    SELECT 
+--        o.order_id,
+--        pr.type_id,
+--        o.order_summa,
+--        ROW_NUMBER() OVER (PARTITION BY o.order_id ORDER BY o.order_summa) AS rn
+--    FROM study.orders o
+--    JOIN study.orders_productsNN nn ON nn.order_id = o.order_id
+--    JOIN study.products pr ON pr.product_id = nn.product_id
+--)
+
+--SELECT DISTINCT
+--    r.type_id,
+--    SUM(order_summa) OVER (PARTITION BY r.type_id ) AS total_order_sum
+--FROM RankedOrders r
+--WHERE rn = 1 
+--ORDER BY type_id;
+
 --   - **Задание 3**: Создайте отчет, который показывает сумму продаж для каждого месяца.
+--SELECT
+--o.order_date
+--,SUM(o.order_summa) OVER (PARTITION BY MONTH(o.order_date))
+--FROM study.orders o
+
+--SELECT
+--MONTH(o.order_date) AS month_date
+--,SUM(o.order_summa)
+--FROM study.orders o
+--GROUP BY  MONTH(o.order_date)
+--ORDER BY month_date
+
+
 --### 6. **AVG()**
 --   - **Задание 1**: Вычислите среднее значение стоимости товаров для каждого типа продукции.
 --   - **Задание 2**: Получите среднюю сумму заказов по каждому покупателю.
@@ -338,6 +403,7 @@
 --   - **Задание 1**: Найдите минимальную и максимальную цену среди всех товаров.
 --   - **Задание 2**: Выведите дату самого раннего и самого позднего заказа в базе.
 --   - **Задание 3**: Определите, какой покупатель имеет наименьшую и наибольшую общую сумму заказов.
+ 
 --### 9. **LAG()**
 --   - **Задание 1**: Используя `LAG()`, покажите, как сумма заказов каждого покупателя изменяется со временем.
 --   - **Задание 2**: Выведите информацию о товарах и их ценах, а также цену предыдущего товара в списке для сравнения.
