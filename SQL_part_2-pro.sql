@@ -188,9 +188,10 @@
 --,o.order_summa
 --FROM study.orders o
 --JOIN study.orders_productsNN nn ON nn.order_id = o.order_id
---RIGHT JOIN study.products p ON  nn.product_id = p.product_id 
+--RIGHT JOIN study.products p ON  nn.product_id = p.product_id
 
---*****ОКОННЫЕ ФУНКЦИИ*****
+
+--***************************************************************************************************ОКОННЫЕ ФУНКЦИИ**************************************************************************************************************************************************
 
 
 --1. ROW_NUMBER()
@@ -393,28 +394,157 @@
 
 --### 6. **AVG()**
 --   - **Задание 1**: Вычислите среднее значение стоимости товаров для каждого типа продукции.
+--SELECT
+--pr.product_name
+--,AVG(pr.price) OVER (PARTITION BY pr.type_id) AS [avg_price]
+--,pr.type_id
+--FROM study.products pr
+
+--SELECT
+--AVG(pr.price)
+--,pr.type_id
+--FROM study.products pr
+--GROUP BY pr.type_id
 --   - **Задание 2**: Получите среднюю сумму заказов по каждому покупателю.
+--SELECT
+--b.buyer_name
+--,AVG(o.order_summa) OVER(PARTITION BY b.buyer_id ) AS [avg_order_summa]
+--FROM study.buyers b
+--JOIN study.orders o ON o.buyer_id = b.buyer_id
+--ORDER BY [avg_order_summa]
+
+--SELECT
+--b.buyer_name
+--,AVG(o.order_summa) AS [avg_order_summa]
+--FROM study.buyers b
+--JOIN study.orders o ON o.buyer_id = b.buyer_id
+--GROUP BY b.buyer_name
+--ORDER BY avg_order_summa
 --   - **Задание 3**: Определите средний возраст покупателей и выведите его вместе с именами.
+--SELECT
+--*
+--,AVG(DATEDIFF(YEAR,b.birthday,GETDATE())) OVER(PARTITION BY b.buyer_id) AS [avg_year]
+--FROM study.buyers b
+--ORDER BY [avg_year] 
+
+--SELECT
+--AVG(DATEDIFF(YEAR,b.birthday,GETDATE())) AS [avg_year]
+--,b.birthday
+--,b.buyer_id
+--,b.buyer_name
+--FROM study.buyers b
+--GROUP BY b.birthday, b.buyer_id, b.buyer_name
+
+--ORDER BY [avg_year]
 --### 7. **COUNT()**
 --   - **Задание 1**: Подсчитайте количество заказов для каждого покупателя.
+--SELECT
+--* 
+--,COUNT(o.order_number) OVER(PARTITION BY b.buyer_name) AS [buyers_order_quantiy]
+--FROM study.buyers b
+--JOIN study.orders o ON o.buyer_id = b.buyer_id
+
 --   - **Задание 2**: Выведите количество различных типов продуктов в базе данных.
+--SELECT
+--*
+--,COUNT(pr.product_name) OVER(PARTITION BY pr.type_id) AS [count_product_name]
+--FROM study.products pr
+
 --   - **Задание 3**: Определите, сколько услуг было продано на основании заказов.
+--SELECT
+--*
+--,COUNT(o.order_number) OVER(PARTITION BY pr.type_id) AS [count_order_number]
+--FROM study.orders o
+--JOIN study.orders_productsNN nn ON nn.order_id = o.order_id
+--JOIN study.products pr ON pr.product_id = nn.product_id
+--WHERE pr.type_id = 2
+ 
 --### 8. **MIN() и MAX()**
 --   - **Задание 1**: Найдите минимальную и максимальную цену среди всех товаров.
+--SELECT 
+--*
+--,MAX(pr.price) OVER() AS [max_price]
+--,MIN(pr.price) OVER() AS [min_price]
+--FROM study.products pr
+
 --   - **Задание 2**: Выведите дату самого раннего и самого позднего заказа в базе.
+--SELECT
+--*
+--,MAX(o.order_date) OVER() AS [max_order_date]
+--,MIN(o.order_date) OVER() AS [min_order_date]
+--FROM study.orders o
 --   - **Задание 3**: Определите, какой покупатель имеет наименьшую и наибольшую общую сумму заказов.
- 
+   --   WITH buyer_orders_sum AS
+	  --(SELECT 
+	  -- b.buyer_id
+	  -- ,b.birthday
+	  -- ,b.buyer_name	 
+	  -- ,SUM(o.order_summa) OVER(PARTITION BY b.buyer_id) AS [buyer_total_summa]
+	  -- FROM study.buyers b
+	  -- JOIN study.orders o ON o.buyer_id = b.buyer_id)
+	   
+	  --SELECT
+	  --MIN(bos.buyer_total_summa)   [min_summa]
+	  --,MAX(bos.buyer_total_summa)  [max_summa]
+	  --FROM buyer_orders_sum bos
+	  
 --### 9. **LAG()**
 --   - **Задание 1**: Используя `LAG()`, покажите, как сумма заказов каждого покупателя изменяется со временем.
+
+--SELECT
+--*
+--,LAG(o.order_summa, 0,0) OVER(PARTITION BY b.buyer_id ORDER BY o.order_date) AS [lag_buyer_order_history]
+--FROM study.orders o
+--JOIN study.buyers b ON b.buyer_id = o.buyer_id
+
 --   - **Задание 2**: Выведите информацию о товарах и их ценах, а также цену предыдущего товара в списке для сравнения.
 --   - **Задание 3**: Сравните количество заказов текущего месяца с предыдущим месяцем, используя функцию `LAG()`.
+
 --### 10. **LEAD()**
 --   - **Задание 1**: Выведите список покупателей с текущими и следующими суммами их заказов.
+--SELECT
+--*
+--,LEAD(o.order_summa) OVER(PARTITION BY b.buyer_id ORDER BY o.order_date) AS [next_order_summa]
+--FROM study.buyers b
+--JOIN study.orders o ON o.buyer_id = b.buyer_id
+
 --   - **Задание 2**: Сравните текущую цену товара с ценой следующего товара в списке.
+--SELECT
+--*
+--,LEAD(pr.price) OVER(ORDER BY pr.product_name) AS [next_product_price]
+--FROM study.products pr
+
 --   - **Задание 3**: Определите, какой покупатель сделал наибольший заказ в текущем месяце, и выведите информацию о следующем заказе этого покупателя.
+--SELECT
+--b.buyer_id
+--,b.buyer_name
+--,o.order_id
+--,o.order_date
+--,o.order_number
+--,o.order_summa
+----,MAX(o.order_summa) OVER(PARTITION BY b.buyer_id) AS [max_order]
+--,LEAD(o.order_summa) OVER(PARTITION BY b.buyer_id ORDER BY o.order_date)	AS [next_order_summa]
+--FROM study.buyers b
+--JOIN study.orders o	 ON o.buyer_id = b.buyer_id
+--WHERE o.order_date BETWEEN '2020.05.01' AND '2020.05.31'
+--GROUP BY b.buyer_id
+--,b.buyer_name
+--,o.order_id
+--,o.order_date
+--,o.order_number
+--,o.order_summa
+--HAVING o.order_summa = MAX(o.order_summa)
+
+
 --### 11. **FIRST_VALUE()**
 --   - **Задание 1**: Используйте `FIRST_VALUE()` для получения самой ранней даты заказа для каждого покупателя.
+--SELECT
+--*
+--,FIRST_VALUE(o.order_date) OVER(PARTITION BY b.buyer_id ORDER BY o.order_date)
+--FROM study.buyers b
+--JOIN study.orders o ON o.buyer_id = b.buyer_id
 --   - **Задание 2**: Выведите первую цену этого товара из таблицы `products` для каждого типа продукта.
+
 --   - **Задание 3**: Определите, какой продукт был первым в каждом заказе, и выведите его название и цену.
 
 --### 12. **LAST_VALUE()**
@@ -439,6 +569,129 @@
 --   - **Задание 2**: Вычислите 25-й и 75-й процентиль по сумму заказов для анализа разброса данных.
 --   - **Задание 3**: Проведите анализ, чтобы определить, какой процент заказов составляют лучшие 10% по прибыли.
 
+-- 20 задач со средним уровнем сложности для работы с хранимыми процедурами, 
+-- оконные функции, агрегатные функции и работу с датами:
+
+--1. **Добавить нового покупателя и вернуть текущую дату**: Создайте процедуру для добавления нового покупателя в таблицу `buyers`, которая возвращает дату добавления.
+--SELECT
+--*
+--FROM study.buyers b;
+
+--GO
+
+--CREATE PROCEDURE insert_buyer_name
+--(
+--    @buyer_id INT,
+--    @buyer_name VARCHAR(100),
+--    @birthday DATE
+--)
+--AS 
+--BEGIN
+--    INSERT INTO study.buyers (buyer_id, buyer_name, birthday)
+--    VALUES (@buyer_id, @buyer_name, @birthday);
+
+--    SELECT GETDATE() AS insert_buyer_date;
+--END;
+
+--GO
+
+--EXEC study.insert_buyer_name 111, 'James B.D', '1981-04-05'; 
+
+--GO
+
+--SELECT
+--*
+--FROM study.buyers b;
+
+--2. **Обновить информацию о покупателе James B.D **: Создайте процедуру, которая обновляет имя покупателя и вычисляет его возраст на основе даты рождения, возвращая возраст покупателя.
+
+--EXEC study.update_buyers_name 'Jamess B.D', 'rrrrr' ;
+
+--SELECT
+--*
+--FROM study.buyers;
+
+--GO
+  
+--CREATE PROCEDURE [study].[update_buyers_name]
+--(@buyer_name NVARCHAR(200)
+-- ,@new_buyer_name NVARCHAR(200)) 
+--AS
+--BEGIN
+--  UPDATE study.buyers 
+--  SET buyer_name = @new_buyer_name
+--  WHERE buyer_name = @buyer_name
+--  SELECT 
+--  DATEDIFF(YEAR, b.birthday, GETDATE()) AS buyers_age
+--  FROM study.buyers b
+--  WHERE buyer_name = @new_buyer_name
+--END
+
+--3. **Удалить покупателя и связанные заказы**: Создайте процедуру для удаления покупателя по `buyer_id`= 111 и всех его заказов из таблицы `orders`.
+--select
+--*
+--from study.buyers b
+--LEFT JOIN study.orders o ON o.buyer_id = b.buyer_id;
+
+--GO
+
+--INSERT INTO  study.orders
+--VALUES
+--(555, 111, 212,GETDATE(),0.00)
+
+--ALTER PROCEDURE study.delete_order_on_buyer_id(@buyer_id INT)
+--AS
+--BEGIN
+--DELETE FROM study.orders
+--WHERE buyer_id = @buyer_id
+
+--DELETE FROM study.buyers
+--WHERE buyer_id = @buyer_id
+
+--select
+--*
+--from study.buyers b
+--LEFT JOIN study.orders o ON o.buyer_id = b.buyer_id;
+--END;
+
+--EXEC study.delete_order_on_buyer_id 111;
+
+
+--4. **Добавить новый заказ и обновить общую сумму заказов покупателя**: Создайте процедуру для добавления нового заказа и обновления общей суммы всех заказов покупателя с использованием оконной функции.
+
+--5. **Обновить информацию о заказе и вернуть количество заказов за текущий месяц**: Создайте процедуру для обновления данных заказа и подсчета количества заказов за текущий месяц.
+
+--6. **Удалить заказ и вернуть новые средние продажи**: Создайте процедуру для удаления заказа и вычисления новой средней суммы заказа с использованием агрегатной функции.
+
+--7. **Добавить новый тип продукции и вернуть его ошибки**: Создайте процедуру для добавления нового типа продукции и проверки, что имя типа уникально, возвращая ошибку, если оно повторяется.
+
+--8. **Обновить тип продукции и вернуть список всех типов с общим количеством продуктов**: Создайте процедуру для обновления типа продукции и вывода списка всех типов продукции с количеством продуктов для каждого типа.
+
+--9. **Удалить тип продукции и переназначить эти продукты на другой тип**: Создайте процедуру для удаления типа продукции и переназначения продуктов на указанный `type_id`.
+
+--10. **Добавить новый продукт и рассчитать среднюю цену всех продуктов этого типа**: Создайте процедуру с добавлением нового продукта и расчётом средней цены всех продуктов данного `type_id`.
+
+--11. **Обновить информацию о продукте и вернуть рейтинг продаж**: Создайте процедуру, которая обновляет информацию о продукте и возвращает его место в рейтинге по продажам с использованием оконных функций.
+
+--12. **Удалить продукт и вычислить общую потерю продаж**: Создайте процедуру для удаления продукта и вычисления, на сколько уменьшилась общая сумма всех продаж.
+
+--13. **Добавить продукт в заказ и обновить сумму заказа**: Создайте процедуру для добавления продукта в заказ и обновления суммы заказа, включая новый продукт.
+
+--14. **Найти заказы покупателя за последний год**: Создайте процедуру для поиска и вывода всех заказов, сделанных конкретным покупателем за последний год.
+
+--15. **Найти все продукты в заказе и отсортировать по цене**: Создайте процедуру для вывода всех продуктов в определенном заказе, отсортированных по убыванию цены.
+
+--16. **Рассчитать общую стоимость заказов за неделю**: Создайте процедуру для расчета общей стоимости всех заказов, сделанных за последнюю неделю.
+
+--17. **Сделать выборку покупателей с заказами выше средней суммы**: Создайте процедуру для выборки всех покупателей, у которых хотя бы один заказ превышает среднюю сумму всех заказов.
+
+--18. **Найти популярные типы продукции за последние три месяца**: Создайте процедуру для определения типов продукции, наиболее часто заказанных за последние три месяца.
+
+--19. **Суммировать продажи по месяцам для каждого типа продукции**: Создайте процедуру, которая суммирует продажи по каждому месяцу и типу продукции и возвращает результаты за последний год.
+
+--20. **Генерация ежемесячного отчета по продажам и отправка уведомления**: Создайте процедуру для создания отчета о продажах за указанный месяц и год и отправки уведомления, если продажи ниже заданного порога. 
+
+--Эти задачи призваны помочь вам развивать навыки работы с SQL и хранимыми процедурами, включая использование более сложной логики и требуемых функций.
 
 
 
